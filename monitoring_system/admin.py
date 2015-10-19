@@ -1,13 +1,7 @@
 from django.contrib import admin
+from .models import Resource
 
-from .models import Metric, Vapp, Vm_core
+class ChildAdmin(admin.ModelAdmin):
+    pass
 
-# Register your models here.
-
-admin.site.register(Metric)
-
-admin.site.register(Vapp)
-
-admin.site.register(Vm_core)
-
-#admin.site.register(Vm_ram)
+admin.site.register(Resource, ChildAdmin)
