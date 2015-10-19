@@ -1,5 +1,16 @@
 #!/home/njthykkathu/jasmine-venv/bin/python
 
+"""
+This module ......
+
+
+
+"""
+
+__author__ = "Nijin Thykkathu"
+__copyright__ = "Copyright 2015 UK Science and Technology Facilities Council"
+
+
 import os
 import sys
 import django
@@ -19,7 +30,7 @@ password = parser.get('config', 'password')
 sys.path.append(path)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "jasmin_monitoring.settings")
 django.setup()
-from monitoring_system.models import Metric, Vapp, Vm_core
+from monitoring_system.models import Resource
 
 # Retrieving info from VCloud directory
 # Create a session
@@ -31,6 +42,17 @@ xmldata = ET.fromstring(org_list)
 for id_list in xmldata:
     list = id_list.attrib
     print(list)
+
+# Using the org list find vapps
+
+
+# Using the vapp list find the vm
+
+# Using the vm list find the cpu cores used by each system
+
+
+
+#-----------------------------------------------------------------------------------------------------------#
 
 # dom = parseString(org_list)
 # xmlTag = dom.getElementsByTagName('OrgList')[0].toxml()
