@@ -32,18 +32,98 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "jasmin_monitoring.settings")
 django.setup()
 from monitoring_system.models import Resource
 
+# Prefixes for vCD namespaces
+_NS = {
+    'vcd' : 'http://www.vmware.com/vcloud/v1.5',
+    'ovf' : 'http://schemas.dmtf.org/ovf/envelope/1',
+    'vmw' : 'http://www.vmware.com/schema/ovf',
+}
+
 # Retrieving info from VCloud directory
 # Create a session
 sess = VCloudProvider('https://vcloud.jasmin.ac.uk/api').new_session(username,password)
 
 # Getting Org id from the org list
-org_list = sess.api_request('GET', '/org').text
-xmldata = ET.fromstring(org_list)
-for id_list in xmldata:
-    list = id_list.attrib
-    print(list)
+results1 = ET.fromstring(sess.api_request('GET', '/org').text)
+org_ref = results1.findall('.//vcd:Org[@type="application/vnd.vmware.vcloud.org+xml"]', _NS)
+#org_ids = [app.attrib['href'].rstrip('/').split('/').pop() for app in results1]
 
-# Using the org list find vapps
+for org_list in org_ref:
+    org = ET.fromstring(sess.api_request('GET', org_list.attrib['href']).text)
+    # Then get the VDC from the org
+    vdc_ref = org.find('.//vcd:Link[@type="application/vnd.vmware.vcloud.vdc+xml"]', _NS)
+ #   print(vdc_ref)
+    if vdc_ref is None:
+        raise ProvisioningError('Organisation has no VDCs')
+  #  print(vdc_ref.attrib['href'])
+    #vdc_id = vdc_ref.attrib['href'].rstrip('/').split('/').pop()
+   # print(vdc_id)
+
+    # Using the vdc find vapps
+    results = ET.fromstring(sess.api_request('GET',vdc_ref.attrib['href']).text)
+    vapps = results.findall('.//vcd:ResourceEntity[@type="application/vnd.vmware.vcloud.vApp+xml"]', _NS)
+
+
+    for vapp_list in vapps:
+        print(vapp_list.attrib['href'])
+        vm_ref = ET.fromstring(sess.api_request('GET', vapp_list.attrib['href']).text)
+        ip_range = vm_ref.find('.//vcd:Children', _NS)
+
+
+        # Got the Vapp, now need to find the status and core of each Vapp
+
+        # Need to go to vcloud directory and check each vms cores
+        # Need to add power on before
+
+        # Seems that the code below is showing the core, need to re-confirm it
+        core = vm_ref.find('.//vcd:Vm//vmw:CoresPerSocket', _NS).text
+        print(core)
+        #vms = ip_range.find('./vcd:Vm[@status="4"]', _NS)
+
+
+        # for vm_list in vms:
+        #     print(vm_list.attrib["href"])
+        # if the vapp
+
+
+
+
+
+
+
+
+
+
+
+# #GET /org/{id}
+#
+# # Using the org list find vapps
+# results = ET.fromstring(sess.api_request('GET', 'vApps/query').text)
+# apps = results.findall('vcd:VAppRecord', _NS)
+# machine_ids = [app.attrib['href'].rstrip('/').split('/').pop() for app in apps]
+#
+# for id_list in machine_ids:
+#     print(id_list)
+
+
+
+
+
+
+
+
+
+
+#org_list = sess.api_request('GET', '/org').text
+
+# results = ET.fromstring(sess.api_request('GET', '/org').text)
+# print(results)
+#xmldata = ET.fromstring(org_list)
+
+# for id_list in xmldata:
+#     list = id_list.attrib
+#     print(list)
+
 
 
 # Using the vapp list find the vm
