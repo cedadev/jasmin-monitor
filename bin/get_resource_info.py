@@ -44,14 +44,14 @@ _NS = {
 sess = VCloudProvider('https://vcloud.jasmin.ac.uk/api').new_session(username,password)
 
 # Getting Org id from the org list
-results1 = ET.fromstring(sess.api_request('GET', '/org').text)
-org_ref = results1.findall('.//vcd:Org[@type="application/vnd.vmware.vcloud.org+xml"]', _NS)
+get_org = ET.fromstring(sess.api_request('GET', '/org').text)
+org_ref = get_org.findall('.//vcd:Org[@type="application/vnd.vmware.vcloud.org+xml"]', _NS)
 #org_ids = [app.attrib['href'].rstrip('/').split('/').pop() for app in results1]
 
 for org_list in org_ref:
-    org = ET.fromstring(sess.api_request('GET', org_list.attrib['href']).text)
+    org_id = ET.fromstring(sess.api_request('GET', org_list.attrib['href']).text)
     # Then get the VDC from the org
-    vdc_ref = org.find('.//vcd:Link[@type="application/vnd.vmware.vcloud.vdc+xml"]', _NS)
+    vdc_ref = org_id.find('.//vcd:Link[@type="application/vnd.vmware.vcloud.vdc+xml"]', _NS)
  #   print(vdc_ref)
     if vdc_ref is None:
         raise ProvisioningError('Organisation has no VDCs')
@@ -60,14 +60,43 @@ for org_list in org_ref:
    # print(vdc_id)
 
     # Using the vdc find vapps
-    results = ET.fromstring(sess.api_request('GET',vdc_ref.attrib['href']).text)
-    vapps = results.findall('.//vcd:ResourceEntity[@type="application/vnd.vmware.vcloud.vApp+xml"]', _NS)
+    get_vdc = ET.fromstring(sess.api_request('GET',vdc_ref.attrib['href']).text)
+    vapp_ref = get_vdc.findall('.//vcd:ResourceEntity[@type="application/vnd.vmware.vcloud.vApp+xml"]', _NS)
 
 
-    for vapp_list in vapps:
-        print(vapp_list.attrib['href'])
-        vm_ref = ET.fromstring(sess.api_request('GET', vapp_list.attrib['href']).text)
-        ip_range = vm_ref.find('.//vcd:Children', _NS)
+    for vapp_list in vapp_ref:
+       # print(vapp_list.attrib['href'])
+        get_vm = ET.fromstring(sess.api_request('GET', vapp_list.attrib['href']).text)
+        get_status = get_vm.find('.//vcd:Children', _NS)
+        for status in get_status:
+            if status.attrib['status'] == '4':
+                print("power on")
+                os = get_vm.find('.//vcd:Vm//ovf:OperatingSystemSection/ovf:Info', _NS).text
+                print(os)
+                # Ask about this
+                os = get_vm.find('.//vcd:Vm/vcd:GuestCustomizationSection/vcd:UseOrgSettings', _NS).text
+                print(os)
+                core_ref = get_vm.find('.//vcd:Vm//vmw:CoresPerSocket', _NS).text
+                print(core_ref)
+                # Adding data to database
+                # This is a test - manual input
+                #add_org = Resource.objects.create(Org_ID='thefinalorg', Vm_ID = "thevmid", Value = core_ref,Metric_Type ='CPU')
+            else:
+                print("power off")
+
+# inputs the data to database
+# add_org = Resource.objects.create(Org_ID='neworg', Vm_ID = "newvm", Value = core_ref,Metric_Type ='CPU')
+#
+#
+#
+# # Update the row without creating a new object
+# t = Resource.objects.get(id=12)
+# t.Vm_ID = 'updatedvm'  # change field
+# t.save() # this will update only
+
+
+#-----------------------------------------------------------------------------------------------------------#
+
 
 
         # Got the Vapp, now need to find the status and core of each Vapp
@@ -76,20 +105,6 @@ for org_list in org_ref:
         # Need to add power on before
 
         # Seems that the code below is showing the core, need to re-confirm it
-        core = vm_ref.find('.//vcd:Vm//vmw:CoresPerSocket', _NS).text
-        print(core)
-        #vms = ip_range.find('./vcd:Vm[@status="4"]', _NS)
-
-
-        # for vm_list in vms:
-        #     print(vm_list.attrib["href"])
-        # if the vapp
-
-
-
-
-
-
 
 
 
