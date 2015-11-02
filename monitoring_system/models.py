@@ -34,4 +34,5 @@ class Resource(models.Model):
 
 
 
+# to query in shell
 #Resource.objects.filter(metric_type = Resource.CPU)
