@@ -1,10 +1,10 @@
 #!/home/njthykkathu/jasmine-venv/bin/python
 
 """
-This module ......
-
-
-
+This module is executed in crontab. It creates a session in VCloud Directory.
+gets the organisation id and using that retrieves the VApp id and checks if the
+Vm is powered on in each VApp. If the Vm is powered on, it will get then take a
+snapshot of amount of resources being used.
 """
 
 __author__ = "Nijin Thykkathu"
@@ -43,21 +43,23 @@ _NS = {
 # Create a session
 sess = VCloudProvider('https://vcloud.jasmin.ac.uk/api').new_session(username,password)
 
-# Getting Org id from the org list
+
+# Getting Org ID from the org list
 get_org = ET.fromstring(sess.api_request('GET', '/org').text)
 org_ref = get_org.findall('.//vcd:Org[@type="application/vnd.vmware.vcloud.org+xml"]', _NS)
-#org_ids = [app.attrib['href'].rstrip('/').split('/').pop() for app in results1]
 
 for org_list in org_ref:
+    # Need to input the org_id into the table
     org_id = ET.fromstring(sess.api_request('GET', org_list.attrib['href']).text)
+    # Got Org ID here
+    Org_ID = org_id.attrib['href'].rstrip('/').split('/').pop()
+
     # Then get the VDC from the org
     vdc_ref = org_id.find('.//vcd:Link[@type="application/vnd.vmware.vcloud.vdc+xml"]', _NS)
- #   print(vdc_ref)
+
+    # Need to add more of these through the code
     if vdc_ref is None:
         raise ProvisioningError('Organisation has no VDCs')
-  #  print(vdc_ref.attrib['href'])
-    #vdc_id = vdc_ref.attrib['href'].rstrip('/').split('/').pop()
-   # print(vdc_id)
 
     # Using the vdc find vapps
     get_vdc = ET.fromstring(sess.api_request('GET',vdc_ref.attrib['href']).text)
@@ -65,27 +67,33 @@ for org_list in org_ref:
 
 
     for vapp_list in vapp_ref:
-       # print(vapp_list.attrib['href'])
         get_vm = ET.fromstring(sess.api_request('GET', vapp_list.attrib['href']).text)
+
         get_status = get_vm.find('.//vcd:Children', _NS)
         for status in get_status:
             if status.attrib['status'] == '4':
                 print("power on")
-                os = get_vm.find('.//vcd:Vm//ovf:OperatingSystemSection/ovf:Info', _NS).text
-                print(os)
-                # Ask about this
-                os = get_vm.find('.//vcd:Vm/vcd:GuestCustomizationSection/vcd:UseOrgSettings', _NS).text
-                print(os)
+                # Got VM ID
+                VM_ID = status.attrib['href'].rstrip('/').split('/').pop()
+                # os = get_vm.find('.//vcd:Vm//ovf:OperatingSystemSection/ovf:Info', _NS).text
+                # print(os)
+                # # Ask about this
+                # os = get_vm.find('.//vcd:Vm/vcd:GuestCustomizationSection/vcd:UseOrgSettings', _NS).text
+                # print(os)
                 core_ref = get_vm.find('.//vcd:Vm//vmw:CoresPerSocket', _NS).text
                 print(core_ref)
                 # Adding data to database
-                # This is a test - manual input
-                #add_org = Resource.objects.create(Org_ID='thefinalorg', Vm_ID = "thevmid", Value = core_ref,Metric_Type ='CPU')
+                add_org = Resource.objects.create(Org_ID=Org_ID, Vm_ID=VM_ID, Value=core_ref, Metric_Type=0)
             else:
-                print("power off")
+                pass
+
+
+
 
 # inputs the data to database
-# add_org = Resource.objects.create(Org_ID='neworg', Vm_ID = "newvm", Value = core_ref,Metric_Type ='CPU')
+# 0 - CPU
+# 1 - RAM
+#add_org = Resource.objects.create(Org_ID=Org_ID, Vm_ID = "newvm", Value = core_ref,Metric_Type =0)
 #
 #
 #
