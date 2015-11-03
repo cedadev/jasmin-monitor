@@ -16,7 +16,6 @@ import sys
 import django
 from configparser import SafeConfigParser
 from jasmin_portal.cloudservices.vcloud import VCloudProvider
-#from xml.dom.minidom import parseString
 import xml.etree.ElementTree as ET
 import re
 
@@ -37,156 +36,78 @@ _NS = {
     'vcd' : 'http://www.vmware.com/vcloud/v1.5',
     'ovf' : 'http://schemas.dmtf.org/ovf/envelope/1',
     'vmw' : 'http://www.vmware.com/schema/ovf',
+    'rasd': 'http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData'
 }
 
-# Retrieving info from VCloud directory
 # Create a session
-sess = VCloudProvider('https://vcloud.jasmin.ac.uk/api').new_session(username,password)
+sess = VCloudProvider('https://vcloud.jasmin.ac.uk/api').new_session(username, password)
 
+#-----------------------------------------------------------------------------------------------------------#
 
 # Getting Org ID from the org list
-get_org = ET.fromstring(sess.api_request('GET', '/org').text)
-org_ref = get_org.findall('.//vcd:Org[@type="application/vnd.vmware.vcloud.org+xml"]', _NS)
+def GetOrg(sess):
 
-for org_list in org_ref:
-    # Need to input the org_id into the table
-    org_id = ET.fromstring(sess.api_request('GET', org_list.attrib['href']).text)
-    # Got Org ID here
-    Org_ID = org_id.attrib['href'].rstrip('/').split('/').pop()
+    get_org = ET.fromstring(sess.api_request('GET', '/org').text)
+    org_ref = get_org.findall('.//vcd:Org[@type="application/vnd.vmware.vcloud.org+xml"]', _NS)
+    if org_ref is None:
+        raise ProvisioningError('Unable to find organisation for user')
+    for org_list in org_ref:
+        org_id = ET.fromstring(sess.api_request('GET', org_list.attrib['href']).text)
+        # Parsed the ID
+        parse_org_id = org_id.attrib['href'].rstrip('/').split('/').pop()
+        return org_id, parse_org_id
 
-    # Then get the VDC from the org
+
+# Getting Vapp ID using the org id
+def GetVapp(org_id):
     vdc_ref = org_id.find('.//vcd:Link[@type="application/vnd.vmware.vcloud.vdc+xml"]', _NS)
-
-    # Need to add more of these through the code
     if vdc_ref is None:
         raise ProvisioningError('Organisation has no VDCs')
-
     # Using the vdc find vapps
     get_vdc = ET.fromstring(sess.api_request('GET',vdc_ref.attrib['href']).text)
     vapp_ref = get_vdc.findall('.//vcd:ResourceEntity[@type="application/vnd.vmware.vcloud.vApp+xml"]', _NS)
+    return vapp_ref
 
 
-    for vapp_list in vapp_ref:
-        get_vm = ET.fromstring(sess.api_request('GET', vapp_list.attrib['href']).text)
-
-        get_status = get_vm.find('.//vcd:Children', _NS)
-        for status in get_status:
-            if status.attrib['status'] == '4':
-                print("power on")
-                # Got VM ID
-                VM_ID = status.attrib['href'].rstrip('/').split('/').pop()
-                # os = get_vm.find('.//vcd:Vm//ovf:OperatingSystemSection/ovf:Info', _NS).text
-                # print(os)
-                # # Ask about this
-                # os = get_vm.find('.//vcd:Vm/vcd:GuestCustomizationSection/vcd:UseOrgSettings', _NS).text
-                # print(os)
-                core_ref = get_vm.find('.//vcd:Vm//vmw:CoresPerSocket', _NS).text
-                print(core_ref)
-                # Adding data to database
-                add_org = Resource.objects.create(Org_ID=Org_ID, Vm_ID=VM_ID, Value=core_ref, Metric_Type=0)
-            else:
-                pass
+# Retrieves core data and adds to the database
+def CoreData(get_vm, org_id, vm_id):
+    core_ref = get_vm.find('.//vcd:Vm//vmw:CoresPerSocket', _NS).text
+    # Adding data to database
+    Resource.objects.create(Org_ID=org_id, Vm_ID=vm_id, Value=core_ref, Metric_Type=0)
 
 
-
-
-# inputs the data to database
-# 0 - CPU
-# 1 - RAM
-#add_org = Resource.objects.create(Org_ID=Org_ID, Vm_ID = "newvm", Value = core_ref,Metric_Type =0)
-#
-#
-#
-# # Update the row without creating a new object
-# t = Resource.objects.get(id=12)
-# t.Vm_ID = 'updatedvm'  # change field
-# t.save() # this will update only
-
+# Retrieves ram data and adds to the database
+def RamData(status, org_id, vm_id):
+    vm_href = status.attrib['href']
+    get_ram = ET.fromstring(sess.api_request('GET', vm_href + '/virtualHardwareSection/memory').text)
+    ram_ref = get_ram.find('.//rasd:VirtualQuantity', _NS).text
+    # Adding data to database
+    Resource.objects.create(Org_ID=org_id, Vm_ID=vm_id, Value=ram_ref, Metric_Type=1)
 
 #-----------------------------------------------------------------------------------------------------------#
 
+# Executes the program
+get_org = GetOrg(sess)
+get_vapp = GetVapp(get_org[0])
 
 
-        # Got the Vapp, now need to find the status and core of each Vapp
-
-        # Need to go to vcloud directory and check each vms cores
-        # Need to add power on before
-
-        # Seems that the code below is showing the core, need to re-confirm it
-
-
-
-
-
-# #GET /org/{id}
-#
-# # Using the org list find vapps
-# results = ET.fromstring(sess.api_request('GET', 'vApps/query').text)
-# apps = results.findall('vcd:VAppRecord', _NS)
-# machine_ids = [app.attrib['href'].rstrip('/').split('/').pop() for app in apps]
-#
-# for id_list in machine_ids:
-#     print(id_list)
+# Getting VM ID and the resources information's
+for vapp_list in get_vapp:
+    get_vm = ET.fromstring(sess.api_request('GET', vapp_list.attrib['href']).text)
+    status_ref = get_vm.find('.//vcd:Children', _NS)
+    for status in status_ref:
+        # Checks if the vm is powered on
+        if status.attrib['status'] == '4':
+            parse_vm_id = status.attrib['href'].rstrip('/').split('/').pop()
+            CoreData(get_vm, get_org[1], parse_vm_id)
+            RamData(status, get_org[1], parse_vm_id)
+        else:
+            pass
 
 
-
-
-
-
-
-
-
-
-#org_list = sess.api_request('GET', '/org').text
-
-# results = ET.fromstring(sess.api_request('GET', '/org').text)
-# print(results)
-#xmldata = ET.fromstring(org_list)
-
-# for id_list in xmldata:
-#     list = id_list.attrib
-#     print(list)
-
-
-
-# Using the vapp list find the vm
-
-# Using the vm list find the cpu cores used by each system
-
-
-
+# to delete all the data in the table
+#Resource.objects.all().delete()
 #-----------------------------------------------------------------------------------------------------------#
-
-# dom = parseString(org_list)
-# xmlTag = dom.getElementsByTagName('OrgList')[0].toxml()
-# print (xmlTag)
-
-
-# View the XML from an API request
-#print(sess.api_request('GET', 'vApps/query').text)
-
-
-# Getting the Org list
-#print("ORG List")
-#print(sess.api_request('GET', '/org').text)
-
-# Get an Org
-#print("ORG ID")
-#print(sess.api_request('GET', '/org/1d28705f-b5ac-48d2-8bfc-308f407bd114').text)
-
-#print("APP List from ORG")
-# Gets all the Vapp in the Org - use the vdc from the org get list
-#print(sess.api_request('GET', '/vdc/03d03a29-3c4c-490a-8cd2-164760e91db5').text)
-
-
-# Get Details of particualar Vapp Id
-#print(sess.api_request('GET', '/vApp/vapp-2331c443-39aa-4bf4-9940-627d0e745792').text)
-
-
-# Adding data to database
-# add_org = Metric.objects.create(org='thefinalorg')
-# add_vapp = Vapp.objects.create(Vapp='thefinalapp', metric_id = 8)
-#add_cm = Vm_core.objects.create(n_cores='10',Vapp_id=6)
 
 
 # # Quering data from the Django database
