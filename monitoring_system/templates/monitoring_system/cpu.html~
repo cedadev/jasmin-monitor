@@ -1,0 +1,19 @@
+<h1>CPU Query</h1>
+<table border="3">
+<tr>
+  <th>Organisation ID</th>
+  <th>Virtual Machine ID</th>
+  <th>Captured</th>
+  <th>Value</th>
+  <th>Metric Type</th>
+</tr>
+{% for a in cpu %}
+<tr>
+  <td>{{ a.Org_ID }}</td>
+  <td>{{ a.Vm_ID }}</td>
+  <td>{{ a.Date_Time }}</td>
+  <td>{{ a.Value }}</td>
+  <td>{{ a.Metric_Type }}</td>
+</tr>
+{% endfor %}
+</table>
