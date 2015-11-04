@@ -1,8 +1,0 @@
-<h1>MY Database</h1>
-{% if table %}
-<ul>
-{% for a in table %}
-    <li>{{a.Org_ID}}</li>
-{% endfor %}
-</ul>
-{% endif %}
