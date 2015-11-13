@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+<script type="text/javascript">
+            $(function() {
+                $.ajax({
+                    type: "GET",
+                    url: "api/cpu.json",
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log(data);
+
+			var chartData = {
+			  labels: [], // curre
+			  //labels: ["January", "February", "March", "April", "May", "June", "July"],
+			  datasets: [
+			    {
+			      label: "Total Bills",
+			      fillColor: "rgba(220,220,220,0.2)",
+			      strokeColor: "rgba(220,220,220,1)",
+			      pointColor: "rgba(220,220,220,1)",
+			      pointStrokeColor: "#fff",
+			      pointHighlightFill: "#fff",
+			      pointHighlightStroke: "rgba(220,220,220,1)",
+			      data: [] // currently empty will contain all the data points for bills
+			    },
+			    {
+			      label: "Total Amount",
+			      fillColor: "rgba(151,187,205,0.2)",
+			      strokeColor: "rgba(151,187,205,1)",
+			      pointColor: "rgba(151,187,205,1)",
+			      pointStrokeColor: "#fff",
+			      pointHighlightFill: "#fff",
+			      pointHighlightStroke: "rgba(151,187,205,1)",
+			      data: [] // currently empty will contain all the data points for bills
+			    }
+			  ]
+			};
+
+			$.each(data, function(index, element) {
+			  chartData.labels.push(element.date_time);
+			  // add the totalBills and totalAmount to the dataset
+			  chartData.datasets[0].data.push(element.value);	
+			//  chartData.datasets[1].data.push(element.value); 
+			});
+                        var ctx = document.getElementById("myChart").getContext("2d");
+                        var myNewChart = new Chart(ctx);
+                        var myLineChart = new Chart(ctx).Line(chartData);
+                    }
+                });
+            });
+        </script>
+</head>
+<body>
+<canvas id="myChart" width="400" height="400"></canvas>
+
+<div></div>
+
+</body>
+</html>
+
