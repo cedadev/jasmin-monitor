@@ -1,12 +1,15 @@
 from django.shortcuts import render
 from .models import Resource
 from django.http import HttpResponse
-from monitoring_system.serializers import ResourceSerializer
+#from monitoring_system.serializers import ResourceSerializer
 from monitoring_system.serializers import PerDay
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core import serializers
+from .models import Collection
+import json
+import datetime
 
 #
 # # Create your views here.
@@ -28,9 +31,7 @@ from django.core import serializers
 # def ram(request):
 #     ram_query = Resource.objects.filter(Metric_Type=Resource.RAM)
 #     template = loader.get_template('monitoring_system/ram.html')
-#     context = RequestContext(request, {'ram': ram_query, })
-#     return HttpResponse(template.render(context))
-
+#     context =
 
 @api_view(['GET'])
 def resource_list(request, format = None):
@@ -43,10 +44,84 @@ def resource_list(request, format = None):
         return Response(serializer.data)
 
 @api_view(['GET'])
-def cpu_day(request, format = None):
+def cpu_day_list(request, format = None):
 
     if request.method == 'GET':
-        cpu_query = Resource.objects.filter(metric_type=Resource.CPU)
+       query = Collection.objects.all()
+       collection = []
+       for total in query:
+           collection.append(total.total(Resource.CPU))
+       serializer = PerDay(query, many=True)
+       return Response(serializer.data)
+
+
+@api_view(['GET'])
+def cpu_day_detail(request, format = None):
+        if request.method == 'GET':
+           query = Collection.objects.all()
+           collection = []
+           # for total in query:
+           #     collection.append(total.total(Resource.CPU))
+           serializer = PerDay(query, many=True)
+        return Response(serializer.data)
+
+
+@api_view(['GET'])
+def cpu_period(request, format = None):
+        if request.method == 'GET':
+            start = datetime.date(2015,11,18)
+            end = datetime.date(2015,11,19)
+            period = Collection.objects.filter(collection_time__range=[start,end])
+            serializer = PerDay(period, many=True)
+        return Response(serializer.data)
+
+########################################################################################################################
+
+@api_view(['GET'])
+def cpu_period(request, format = None):
+        if request.method == 'GET':
+            collections = Collection.objects
+            if 'start' in request.GET:
+                if request.GET['start'] == '':
+                    last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
+                    def_start = datetime.date.strftime(last_year, "%Y-%m-%d") # default start date
+                    collections = collections.filter(collection_time__gte = def_start)
+                else:
+                    start = datetime.datetime.strptime(request.GET['start'], "%Y-%m-%d")
+                    collections = collections.filter(collection_time__gte = start)
+            if 'end' in request.GET:
+                if request.GET['end'] == '':
+                    now = datetime.datetime.now()
+                    def_end = datetime.date.strftime(now, "%Y-%m-%d") # default end date
+                    collections = collections.filter(collection_time__lte = def_end)
+                else:
+                    end = datetime.datetime.strptime(request.GET['end'], "%Y-%m-%d")
+                    collections = collections.filter(collection_time__lte = end)
+            serializer = PerDay(collections, many=True)
+            return Response(serializer.data)
+
+########################################################################################################################
+
+
+
+       #  check = json.dumps(collection)
+       #
+       # # hello = json.dumps([dict(total=pn) for pn in collection])
+       #  return Response(check)
+
+
+
+
+       #serializer = AlbumSerializer(instance=query)
+       #next = AlbumSerializer(query, many=True)
+       #return Response(serializer.data)
+        # looks like this works, but not returning a list, maybe try and get it going
+        #
+        #
+        #   #cpu_query = Resource.objects.filter(metric_type=Resource.CPU)
+       # collection = Collection.objects.all()[0].total(Resource.CPU)
+
+
 
 
      #   value = [v.value for v in cpu_query]
@@ -65,27 +140,7 @@ def cpu_day(request, format = None):
 
      #   date = [v.date_time for v in cpu_query]
 
-
-
-        serializer = PerDay(cpu_query, many=True)
-
-
-
-        return Response(serializer.data)
-        #return Response(int(average))
-
-
-
-
-
-
-
-
-
-
-
-
-
+       # serializer = PerDay(cpu_query, many=True)
 
 
 

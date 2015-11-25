@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/resources/demos/style.css">
+
+    <style>
+        #header {
+            background-color: black;
+            color: white;
+            text-align: center;
+            padding: 5px;
+        }
+        
+        #section {
+            width: 350px;
+            float: left;
+            padding: 10px;
+        }
+        
+        nav {
+            line-height: 30px;
+            background-color: #eeeeee;
+            height: 1000px;
+            width: 300px;
+            float: left;
+            padding: 5px;
+        }
+    </style>
+
+    <div id="header">
+        <h1> Resource Monitoring System </h1>
+    </div>
+
+    <body>
+
+        <nav>
+            <p> Enter Dates </p>
+            <p>Start Date:
+                <input type="text" id="datepicker_start">
+            </p>
+            <p>End Date:
+                <input type="text" id="datepicker_end">
+            </p>
+            <input type="button" id="ajaxBtn" value="Update" />
+        </nav>
+        <canvas id="myChart_filter" width="1200" height="600"></canvas>
+        <section>
+            <script type="text/javascript">
+                $('#datepicker_start').datepicker(
+                {
+                    dateFormat: 'yy-mm-dd',
+                    onSelect: function(selected)
+                    {
+                        $("#datepicker_start").datepicker();
+
+                    }
+                });
+                $('#datepicker_end').datepicker(
+                {
+                    dateFormat: 'yy-mm-dd',
+                    onSelect: function(selected)
+                    {
+                        $("#datepicker_end").datepicker();
+                    }
+                });
+            </script>
+
+            <script type="text/javascript">
+                var myLineChart
+
+                $(function()
+                {
+                    var x = document.getElementById("datepicker_start").value;
+                    var y = document.getElementById("datepicker_end").value;
+                    $.ajax(
+                    {
+                        type: "GET",
+                        url: "api/cpu/period.json",
+                        data:
+                        {
+                            'start': x,
+                            'end': y
+                        },
+                        dataType: 'json',
+                        success: function(data)
+                        {
+                            console.log(data);
+
+                            var chartData = {
+                                labels: [], // curre
+                                // labels: ["January", "February", "March", "April", "May", "June", "July"],
+                                datasets: [
+                                {
+                                    label: "Cores Used",
+                                    fillColor: "rgba(220,220,220,0.2)",
+                                    strokeColor: "rgba(220,220,220,1)",
+                                    pointColor: "rgba(220,220,220,1)",
+                                    pointStrokeColor: "#fff",
+                                    pointHighlightFill: "#fff",
+                                    pointHighlightStroke: "rgba(220,220,220,1)",
+                                    data: [] // currently empty will contain all the data points for bills
+                                }, ]
+                            };
+                            Chart.types.Line.extend(
+                            {
+                                name: "LineAlt",
+                                draw: function()
+                                {
+                                    Chart.types.Line.prototype.draw.apply(this, arguments);
+
+                                    var ctx = this.chart.ctx;
+                                    ctx.save();
+                                    // text alignment and color
+                                    ctx.textAlign = "center";
+                                    ctx.textBaseline = "bottom";
+                                    ctx.fillStyle = this.options.scaleFontColor;
+                                    // position
+                                    var x = this.scale.xScalePaddingLeft * 0.4;
+                                    var y = this.chart.height / 2;
+                                    // change origin
+                                    ctx.translate(x, y)
+                                        // rotate text
+                                    ctx.rotate(-90 * Math.PI / 180);
+                                    ctx.fillText(this.datasets[0].label, 0, 0);
+                                    ctx.restore();
+                                }
+                            });
+                            $.each(data, function(index, element)
+                            {
+                                //  if(element.collection_time >= x && element.collection_time <= y){
+                                var collected_time = element.collection_time
+                                var parse_time = collected_time.substring(0, 19);
+                                var new_collected_time = parse_time.split("T").join(" ");
+                                chartData.labels.push(new_collected_time);
+                                chartData.datasets[0].data.push(element.total);
+                            });
+                            if (myLineChart)
+                            {
+                                myLineChart.destroy();
+                            }
+                            var ctx = document.getElementById("myChart_filter").getContext("2d");
+                            myLineChart = new Chart(ctx).LineAlt(chartData,
+                            {
+                                // make enough space on the right side of the graph
+                                scaleLabel: "          <%=value%>"
+                            });
+                        }
+                    })
+                });
+
+                $("#ajaxBtn").click(function()
+                {
+                    var x = document.getElementById("datepicker_start").value;
+                    var y = document.getElementById("datepicker_end").value;
+                    $.ajax(
+                    {
+                        type: "GET",
+                        url: "api/cpu/period.json",
+                        data:
+                        {
+                            'start': x,
+                            'end': y
+                        },
+                        dataType: 'json',
+                        success: function(data)
+                        {
+                            console.log(data);
+
+                            var chartData = {
+                                labels: [], // curre
+                                // labels: ["January", "February", "March", "April", "May", "June", "July"],
+                                datasets: [
+                                {
+                                    label: "Cores Used",
+                                    fillColor: "rgba(220,220,220,0.2)",
+                                    strokeColor: "rgba(220,220,220,1)",
+                                    pointColor: "rgba(220,220,220,1)",
+                                    pointStrokeColor: "#fff",
+                                    pointHighlightFill: "#fff",
+                                    pointHighlightStroke: "rgba(220,220,220,1)",
+                                    data: [] // currently empty will contain all the data points for bills
+                                }, ]
+                            };
+                            Chart.types.Line.extend(
+                            {
+                                name: "LineAlt",
+                                draw: function()
+                                {
+                                    Chart.types.Line.prototype.draw.apply(this, arguments);
+
+                                    var ctx = this.chart.ctx;
+                                    ctx.save();
+                                    // text alignment and color
+                                    ctx.textAlign = "center";
+                                    ctx.textBaseline = "bottom";
+                                    ctx.fillStyle = this.options.scaleFontColor;
+                                    // position
+                                    var x = this.scale.xScalePaddingLeft * 0.4;
+                                    var y = this.chart.height / 2;
+                                    // change origin
+                                    ctx.translate(x, y)
+                                        // rotate text
+                                    ctx.rotate(-90 * Math.PI / 180);
+                                    ctx.fillText(this.datasets[0].label, 0, 0);
+                                    ctx.restore();
+                                }
+                            });
+                            $.each(data, function(index, element)
+                            {
+                                //  if(element.collection_time >= x && element.collection_time <= y){
+                                var collected_time = element.collection_time
+                                var parse_time = collected_time.substring(0, 19);
+                                var new_collected_time = parse_time.split("T").join(" ");
+                                chartData.labels.push(new_collected_time);
+                                chartData.datasets[0].data.push(element.total);
+                            });
+                            if (myLineChart)
+                            {
+                                myLineChart.destroy();
+                            }
+                            var ctx = document.getElementById("myChart_filter").getContext("2d");
+                            myLineChart = new Chart(ctx).LineAlt(chartData,
+                            {
+                                // make enough space on the right side of the graph
+                                scaleLabel: "          <%=value%>"
+                            });
+                        }
+                    }).fail(function()
+                    {
+                        alert('Check to see if the date are entered in the corrent format "YYYY-mm-dd"');
+                    });
+                });
+            </script>
+        </section>
+    </body>
+</html>
