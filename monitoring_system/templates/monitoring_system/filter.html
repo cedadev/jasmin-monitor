@@ -40,14 +40,14 @@
     <body>
 
         <nav>
-            <p> Enter Dates </p>
+            <p><b> Enter Dates</b></p>
             <p>Start Date:
                 <input type="text" id="datepicker_start">
             </p>
             <p>End Date:
                 <input type="text" id="datepicker_end">
             </p>
-            <input type="button" id="ajaxBtn" value="Update" />
+            <input type="button" id="filterBtn" value="Update" />
         </nav>
         <canvas id="myChart_filter" width="1200" height="600"></canvas>
         <section>
@@ -147,6 +147,7 @@
                             var ctx = document.getElementById("myChart_filter").getContext("2d");
                             myLineChart = new Chart(ctx).LineAlt(chartData,
                             {
+				scaleBeginAtZero: true,
                                 // make enough space on the right side of the graph
                                 scaleLabel: "          <%=value%>"
                             });
@@ -154,7 +155,7 @@
                     })
                 });
 
-                $("#ajaxBtn").click(function()
+                $("#filterBtn").click(function()
                 {
                     var x = document.getElementById("datepicker_start").value;
                     var y = document.getElementById("datepicker_end").value;
@@ -233,7 +234,7 @@
                         }
                     }).fail(function()
                     {
-                        alert('Check to see if the date are entered in the corrent format "YYYY-mm-dd"');
+                        alert('ERROR! \nAre the dates entered in the correct format ("YYYY-mm-dd")');
                     });
                 });
             </script>
