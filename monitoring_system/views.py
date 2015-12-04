@@ -10,6 +10,10 @@ from django.core import serializers
 from .models import Collection
 import json
 import datetime
+from django.db.models import Count
+from django.db import connection
+from django.core.serializers.json import DjangoJSONEncoder
+
 
 #
 # # Create your views here.
@@ -78,27 +82,108 @@ def cpu_period(request, format = None):
 ########################################################################################################################
 
 @api_view(['GET'])
-def cpu_period(request, format = None):
-        if request.method == 'GET':
-            collections = Collection.objects
-            if 'start' in request.GET:
-                if request.GET['start'] == '':
-                    last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
-                    def_start = datetime.date.strftime(last_year, "%Y-%m-%d") # default start date
-                    collections = collections.filter(collection_time__gte = def_start)
-                else:
-                    start = datetime.datetime.strptime(request.GET['start'], "%Y-%m-%d")
-                    collections = collections.filter(collection_time__gte = start)
-            if 'end' in request.GET:
-                if request.GET['end'] == '':
-                    now = datetime.datetime.now()
-                    def_end = datetime.date.strftime(now, "%Y-%m-%d") # default end date
-                    collections = collections.filter(collection_time__lte = def_end)
-                else:
-                    end = datetime.datetime.strptime(request.GET['end'], "%Y-%m-%d")
-                    collections = collections.filter(collection_time__lte = end)
-            serializer = PerDay(collections, many=True)
-            return Response(serializer.data)
+def cpu_period(request, format=None):
+    if request.method == 'GET':
+        metric_type = request.GET.get('metric_type', 'CPU')
+        start = request.GET.get('start', '')
+        if not start:
+            last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
+            start = datetime.date.strftime(last_year, "%Y-%m-%d") # default start date
+        end = request.GET.get('end', '')
+        if not end:
+            now = datetime.datetime.now()
+            end = datetime.date.strftime(now, "%Y-%m-%d %H:%M:%S") # default end date
+        cursor = connection.cursor()
+        cursor.execute("SELECT collection_time, SUM(value) FROM monitoring_system_collection, \
+         monitoring_system_resource WHERE monitoring_system_collection.id = collection_id AND metric_type = %s \
+         AND collection_time BETWEEN %s AND %s \
+         GROUP BY collection_time ORDER BY collection_time", (metric_type, start, end))
+        response = []
+        for query_data in cursor:
+            per_collection = datetime.date.strftime(query_data[0], "%Y-%m-%d %H:%M:%S") # default start date
+            value = query_data[1]
+
+            response.append({'collection_time':per_collection,'total':value})
+        to_json = json.dumps(response)
+        return Response(response)
+
+########################################################################################################################
+
+
+# SELECT date_trunc('day', collection_time) AS day, AVG(total)
+# FROM (
+#     SELECT collection_time, SUM(value) AS total
+#     FROM monitoring_system_collection AS c, monitoring_system_resource AS r
+#     WHERE c.id = r.collection_id AND r.metric_type = 'CPU' AND c.collection_time BETWEEN '2015-11-01 00:00:00' AND '2015-12-04 00:00:00'
+#     GROUP BY collection_time ORDER BY collection_time
+# ) AS totals
+# GROUP BY day ORDER BY day
+
+
+#@api_view(['GET'])
+def total_core_per_day(request):
+    if request.method == 'GET':
+        metric_type = request.GET.get('metric_type', '')
+        start = request.GET.get('start', '')
+        end = request.GET.get('end', '')
+        cursor = connection.cursor()
+        if not start:
+            last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
+            start = datetime.date.strftime(last_year, "%Y-%m-%d") # default start date
+        else:
+            start = start
+        if not end:
+            now = datetime.datetime.now()
+            end = datetime.date.strftime(now, "%Y-%m-%d %H:%M:%S") # default end date
+        else:
+            end = end
+        cursor.execute("SELECT date_trunc('day', monitoring_system_collection.collection_time),count (*) \
+        FROM monitoring_system_collection WHERE collection_time BETWEEN %s AND %s GROUP BY date_trunc('day', \
+        collection_time) ORDER BY date_trunc('day', collection_time)", (start, end))
+        response = []
+        for query_data in cursor:
+            per_day = datetime.date.strftime(query_data[0], "%Y-%m-%d") # default start date
+            print(per_day)
+            total_collection = query_data[1]
+            response.append({'day':per_day,'core':total_collection})
+        to_json = json.dumps(response)
+        return HttpResponse(to_json)
+
+
+
+     #   file = json.dumps({'numbers':value, 'strings':start})
+
+     #   hello = json.dumps([dict(total=pn) for pn in start])
+     #   return Response(hello)
+#
+
+     #   print(file)
+
+
+    #     for
+    #     response = {'count': count, 'year' : year}
+    #     jsondata = json.dumps(response)
+    # return HttpResponse(jsondata)
+
+
+        # if request.method == 'GET':
+        #     collections = Collection.objects
+        #     start = request.GET.get('start', '')
+        #     end = request.GET.get('end', '')
+        #     if not start:
+        #         last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
+        #         start = datetime.date.strftime(last_year, "%Y-%m-%d") # default start date
+        #     else:
+        #         start = datetime.datetime.strptime(start, "%Y-%m-%d")
+        #     collections = collections.filter(collection_time__gte = start)
+        #     if not end:
+        #         now = datetime.datetime.now()
+        #         end = datetime.date.strftime(now, "%Y-%m-%d %H:%M:%S") # default end date
+        #     else:
+        #         end = datetime.datetime.strptime(end, "%Y-%m-%d")
+        #     collections = collections.filter(collection_time__lte = end)
+        #     serializer = PerDay(collections, many=True)
+        #     return Response(serializer.data)
 
 ########################################################################################################################
 
