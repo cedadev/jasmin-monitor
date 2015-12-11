@@ -84,8 +84,10 @@ def cpu_period(request, format = None):
 @api_view(['GET'])
 def cpu_period(request, format=None):
     if request.method == 'GET':
-        metric_type = request.GET.get('metric_type', 'CPU')
+        metric_type = request.GET.get('metric_type', '')
         start = request.GET.get('start', '')
+        if not metric_type:
+            metric_type = 'CPU'
         if not start:
             last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
             start = datetime.date.strftime(last_year, "%Y-%m-%d") # default start date
@@ -94,6 +96,7 @@ def cpu_period(request, format=None):
             now = datetime.datetime.now()
             end = datetime.date.strftime(now, "%Y-%m-%d %H:%M:%S") # default end date
         cursor = connection.cursor()
+        print(metric_type)
         cursor.execute("SELECT collection_time, SUM(value) FROM monitoring_system_collection, \
          monitoring_system_resource WHERE monitoring_system_collection.id = collection_id AND metric_type = %s \
          AND collection_time BETWEEN %s AND %s \
@@ -107,8 +110,8 @@ def cpu_period(request, format=None):
         to_json = json.dumps(response)
         return Response(response)
 
-########################################################################################################################
 
+########################################################################################################################
 
 # SELECT date_trunc('day', collection_time) AS day, AVG(total)
 # FROM (
@@ -120,8 +123,8 @@ def cpu_period(request, format=None):
 # GROUP BY day ORDER BY day
 
 
-#@api_view(['GET'])
-def total_core_per_day(request):
+@api_view(['GET'])
+def per_day(request, format=None):
     if request.method == 'GET':
         metric_type = request.GET.get('metric_type', '')
         start = request.GET.get('start', '')
@@ -145,13 +148,120 @@ def total_core_per_day(request):
             per_day = datetime.date.strftime(query_data[0], "%Y-%m-%d") # default start date
             print(per_day)
             total_collection = query_data[1]
-            response.append({'day':per_day,'core':total_collection})
+            response.append({'day':per_day,'value':total_collection})
         to_json = json.dumps(response)
-        return HttpResponse(to_json)
+        return Response(response)
+
+
+########################################################################################################################
+
+
+@api_view(['GET'])
+def per_week(request, format=None):
+    if request.method == 'GET':
+        metric_type = request.GET.get('metric_type', '')
+        start = request.GET.get('start', '')
+        end = request.GET.get('end', '')
+        cursor = connection.cursor()
+        if not start:
+            last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
+            start = datetime.date.strftime(last_year, "%Y-%m-%d") # default start date
+        else:
+            start = start
+        if not end:
+            now = datetime.datetime.now()
+            end = datetime.date.strftime(now, "%Y-%m-%d %H:%M:%S") # default end date
+        else:
+            end = end
+        cursor.execute("SELECT date_trunc('week', monitoring_system_collection.collection_time),count (*) \
+        FROM monitoring_system_collection WHERE collection_time BETWEEN %s AND %s GROUP BY date_trunc('day', \
+        collection_time) ORDER BY date_trunc('day', collection_time)", (start, end))
+        response = []
+        for query_data in cursor:
+            per_day = datetime.date.strftime(query_data[0], "%Y-%m-%d") # default start date
+            print(per_day)
+            total_collection = query_data[1]
+            response.append({'day':per_day,'value':total_collection})
+        to_json = json.dumps(response)
+        return Response(response)
+
+
+########################################################################################################################
+
+@api_view(['GET'])
+def per_month(request, format=None):
+    if request.method == 'GET':
+        metric_type = request.GET.get('metric_type', '')
+        start = request.GET.get('start', '')
+        end = request.GET.get('end', '')
+        cursor = connection.cursor()
+        if not start:
+            last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
+            start = datetime.date.strftime(last_year, "%Y-%m-%d") # default start date
+        else:
+            start = start
+        if not end:
+            now = datetime.datetime.now()
+            end = datetime.date.strftime(now, "%Y-%m-%d %H:%M:%S") # default end date
+        else:
+            end = end
+        cursor.execute("SELECT date_trunc('month', monitoring_system_collection.collection_time),count (*) \
+        FROM monitoring_system_collection WHERE collection_time BETWEEN %s AND %s GROUP BY date_trunc('day', \
+        collection_time) ORDER BY date_trunc('day', collection_time)", (start, end))
+        response = []
+        for query_data in cursor:
+            per_day = datetime.date.strftime(query_data[0], "%Y-%m-%d") # default start date
+            print(per_day)
+            total_collection = query_data[1]
+            response.append({'day':per_day,'value':total_collection})
+        to_json = json.dumps(response)
+        return Response(response)
+
+
+########################################################################################################################
+
+
+@api_view(['GET'])
+def per_year(request, format=None):
+    if request.method == 'GET':
+        metric_type = request.GET.get('metric_type', '')
+        start = request.GET.get('start', '')
+        end = request.GET.get('end', '')
+        cursor = connection.cursor()
+        if not start:
+            last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
+            start = datetime.date.strftime(last_year, "%Y-%m-%d") # default start date
+        else:
+            start = start
+        if not end:
+            now = datetime.datetime.now()
+            end = datetime.date.strftime(now, "%Y-%m-%d %H:%M:%S") # default end date
+        else:
+            end = end
+        cursor.execute("SELECT date_trunc('year', monitoring_system_collection.collection_time),count (*) \
+        FROM monitoring_system_collection WHERE collection_time BETWEEN %s AND %s GROUP BY date_trunc('day', \
+        collection_time) ORDER BY date_trunc('day', collection_time)", (start, end))
+        response = []
+        for query_data in cursor:
+            per_day = datetime.date.strftime(query_data[0], "%Y-%m-%d") # default start date
+            print(per_day)
+            total_collection = query_data[1]
+            response.append({'day':per_day,'value':total_collection})
+        to_json = json.dumps(response)
+        return Response(response)
+
+
+########################################################################################################################
+
+
+
+
+
 
 
 
      #   file = json.dumps({'numbers':value, 'strings':start})
+
 
      #   hello = json.dumps([dict(total=pn) for pn in start])
      #   return Response(hello)
