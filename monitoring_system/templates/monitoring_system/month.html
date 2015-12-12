@@ -1,79 +1,48 @@
-<!DOCTYPE HTML>
-<html>
-
-<head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-    <script src="//cdnjs.cloudflare.com/ajax/libs/dygraph/1.1.1/dygraph-combined.js"></script>
-    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
-    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-    <link rel="stylesheet" href="/resources/demos/style.css">
+{% extends 'monitoring_system/layout.html' %}
 
 
-    <style>
-        #header {
-            background-color: black;
-            color: white;
-            text-align: center;
-            padding: 5px;
-        }
-        
-        section {
-            width: 1000px;
-            float: left;
-            padding: 10px;
-        }
-        
-        nav {
-            line-height: 30px;
-            background-color: #eeeeee;
-            height: 1000px;
-            width: 300px;
-            float: left;
-            padding: 5px;
-        }
-        
-        ul {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-        }
-        
-        li {
-            display: inline;
-        }
-    </style>
-
-    <div id="header">
-        <h1> Resource Monitoring System </h1>
+{% block site_name %}JASMIN Resource Monitoring System{% endblock %}
+{% block navigation %}
+<div>
+      <ul class="nav navbar-nav navbar-right">
+	<li><a href="/">Home</a></li>
+	<li><a href="/week">Week</a></li>
+	<li class="active"><a href="/month">Month</a></li>
+        <li><a href="/year">Year</a></li>
+      </ul>
     </div>
 
-    <body>
-        <nav>
-            <p><b> Enter Metric Type</b></p>
-            <p>Type:
+{% endblock %}
+
+
+
+{% block page_title %}{% endblock %}
+
+{% block content %}
+
+
+<div class="col-md-3" id="leftCol">
+              	
+		<div class="well"> 
+              	<ul class="nav nav-stacked" id="sidebar">
+                  <li><label for="usr">Start Date:<input type="text" class="form-control" id="datepicker_start"></li></label>
+                  <li><label for="usr">End Date:<input type="text" class="form-control" id="datepicker_end"></li></label>
+		  <li><label for="usr">Select Metric Type:
+
 		<select name="metric" id="metric_type" style="width: 200px">
 		  <option value="----">--Select--</option>
 		  <option value="CPU">CPU</option>
 		  <option value="RAM">RAM</option>
-		</select>
-            </p>
-            <p><b> Enter Dates</b></p>
-            <p>Start Date:
-                <input type="text" id="datepicker_start">
-            </p>
-            <p>End Date:
-                <input type="text" id="datepicker_end">
-            </p>
-            <input type="button" id="filterBtn" value="Update" />
-        </nav>
-        <ul>
-	    <li><button onclick="location.href = '/month';" id="week">Month</button></li>
-	    <li><button onclick="location.href = '/year';" id="week">Year</button></li>
-	    <li><button onclick="location.href = '/';" id="week"submit-button" >Home</button></li>
-        </ul>
-        <section>
-	    <div id="graphdiv" style="height: 750px; width: 150%;"></div>
+		</select></li></label>
+
+		 
+                  <li><button name="filterBtn" id="filterBtn" type="submit" class="btn btn-primary" autocomplete="off">Submit</button></li>
+              	</ul>
+  		</div>
+
+      		</div>  
+
+
             <script type="text/javascript">
                 $('#datepicker_start').datepicker(
                 {
@@ -91,21 +60,31 @@
                     {
                         $("#datepicker_end").datepicker();
                     }
+
                 });
             </script>
+
+
+
+     	<div class="col-md-9">
+<div id="graphdiv" style="height: 500px; width: 140%;"></div>
+
+
+
 
 
             <script type="text/javascript">
                 $("#filterBtn").click(function()
                 {
 		    var dataPoints = [];
+		    //var type = $('.btn-select').text();
                     var type = document.getElementById("metric_type").value;
                     var x = document.getElementById("datepicker_start").value;
                     var y = document.getElementById("datepicker_end").value;
                     $.ajax(
                     {
                         type: "GET",
-                        url: "api/cpu/month",
+                        url: "api/cpu/per_month",
                         data:
                         {
                             'metric_type': type,
@@ -121,7 +100,7 @@
 
                             $.each(data, function(index, element)
                             {
-			       xval = element.day
+			       xval = element.month
                                yval = element.value
 				var reggie = /(\d{4})-(\d{2})-(\d{2})/
 				var dateArray = reggie.exec(xval)
@@ -150,7 +129,7 @@
 		                 {
 
 		                    drawPoints: true,
-		                    showRoller: true,
+		                    //showRoller: true,
 		                    labels: ['Date Time', 'Total']
 				}
 
@@ -164,6 +143,10 @@
                     });
                 });
             </script>
-        </section>
-    </body>
-</html>
+
+        <!-- main area -->
+        <div class="col-xs-12 col-sm-9">
+
+        </div><!-- /.col-xs-12 main -->
+    </div><!--/.row-->
+{% endblock %}
