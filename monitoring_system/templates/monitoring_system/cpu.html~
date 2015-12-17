@@ -1,5 +1,24 @@
-<h1>CPU Query</h1>
-<table border="3">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css" />
+    <title>{% block title %}My amazing site{% endblock %}</title>
+</head>
+
+<h1 style="color:red">Second Page</h1>
+
+<body>
+    <div id="sidebar">
+        {% block sidebar %}
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/ram">RAM</a></li>
+        </ul>
+        {% endblock %}
+    </div>
+
+<h2>CPU Query</h2>
+<table border="3" style="width:60%">
 <tr>
   <th>Organisation ID</th>
   <th>Virtual Machine ID</th>
@@ -17,3 +36,4 @@
 </tr>
 {% endfor %}
 </table>
+</html>

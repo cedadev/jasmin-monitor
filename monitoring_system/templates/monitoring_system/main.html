@@ -1,48 +1,49 @@
 {% extends 'monitoring_system/layout.html' %}
+{% load staticfiles %}
 
+{% block head_title %}JASMIN Resource Monitoring System{% endblock %}
 
-{% block site_name %}JASMIN Resource Monitoring System{% endblock %}
-{% block navigation %}
-<div>
-      <ul class="nav navbar-nav navbar-right">
-	<li class="active"><a href="/">Home</a></li>
-	<li><a href="/week">Week</a></li>
-        <li><a href="/month">Month</a></li>
-        <li><a href="/year">Year</a></li>
-      </ul>
-    </div>
-
-{% endblock %}
-
-
-
-{% block page_title %}{% endblock %}
+{% block page_title %}Monitoring System{% endblock %}
 
 {% block content %}
 
-
-<div class="col-md-3" id="leftCol">
-              	
-		<div class="well"> 
-              	<ul class="nav nav-stacked" id="sidebar">
-                  <li><label for="usr">Start Date:<input type="text" class="form-control" id="datepicker_start"></li></label>
-                  <li><label for="usr">End Date:<input type="text" class="form-control" id="datepicker_end"></li></label>
-		  <li><label for="usr">Select Metric Type:
-
-		<select name="metric" id="metric_type" style="width: 200px">
-		  <option value="----">--Select--</option>
-		  <option value="CPU">CPU</option>
-		  <option value="RAM">RAM</option>
-		</select></li></label>
-
-		 
-                  <li><button name="filterBtn" id="filterBtn" type="submit" class="btn btn-primary" autocomplete="off">Submit</button></li>
-              	</ul>
-  		</div>
-
-      		</div>  
-
-
+<div class="col-md-2" id="leftCol">
+    <div class="well">
+            <div class="form-group">
+                <label for="usr">Organisation Name:</label>
+                <input type="text" class="form-control" id="org_name" />
+            </div>
+	    <div class="form-group">
+                <label for="usr">Start Date:</label>
+                <input type="text" class="form-control" id="datepicker_start" />
+            </div>
+	    <div class="form-group">
+                <label for="usr">End Date:</label>
+                <input type="text" class="form-control" id="datepicker_end" />
+            </div>
+            <div class="form-group">
+                <label for="metric_type">Metric Type:</label>
+                <select name="metric" id="metric_type" class="form-control">
+                    <option value="">--Select--</option>
+                    <option value="CPU">CPU</option>
+                    <option value="RAM">RAM</option>
+                </select>
+            </div>
+	   <div class="form-group">
+                <label for="time_period">Time Period:</label>
+                <select name="metric" id="time_period" class="form-control">
+                    <option value="">--Select--</option>
+                    <option value="Hour">Hour</option>
+                    <option value="Day">Day</option>
+		    <option value="Month">Month</option>
+		    <option value="Year">Year</option>		
+                </select>
+            </div>
+            <div class="form-group">
+                <button name="filterBtn" id="filterBtn" type="submit" onclick=filterChart(url); class="btn btn-primary" autocomplete="off">Submit</button>
+            </div>
+                </div>
+            </div>
             <script type="text/javascript">
                 $('#datepicker_start').datepicker(
                 {
@@ -63,93 +64,16 @@
 
                 });
             </script>
-
-
-
-     	<div class="col-md-9">
-<div id="graphdiv" style="height: 500px; width: 140%;"></div>
-
-
-
-
-
-            <script type="text/javascript">
-                $("#filterBtn").click(function()
-                {
-		    var dataPoints = [];
-		    //var type = $('.btn-select').text();
-                    var type = document.getElementById("metric_type").value;
-                    var x = document.getElementById("datepicker_start").value;
-                    var y = document.getElementById("datepicker_end").value;
-                    $.ajax(
-                    {
-                        type: "GET",
-                        url: "api/cpu/period",
-                        data:
-                        {
-                            'metric_type': type,
-                            'start': x,
-                            'end': y
-                        },
-                        dataType: 'json',
-                        success: function(data)
-                        {
-                            console.log(data);
-
-                            
-
-                            $.each(data, function(index, element)
-                            {
-			       xval = element.collection_time
-                               yval = element.total
-				var reggie = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/
-				var dateArray = reggie.exec(xval)
-				var dateObject = new Date(
-				    (+dateArray[1]),
-				    (+dateArray[2])-1, // Careful, month starts at 0!
-				    (+dateArray[3]),
-				    (+dateArray[4]),
-				    (+dateArray[5]),
-				    (+dateArray[6])
-				);
-	
-
-				//var newtime = dateObject.toISOString()
-				// var collected_time = newtime
-                                // var parse_time = collected_time.substring(0, 19);
-                                // var new_collected_time = parse_time.split("T").join(" ")
-				//alert(new_collected_time)
-
-			       var x = [new Date(dateObject),yval]
-			       dataPoints.push(x);
-                            });
-
-
-				  g = new Dygraph(
-
-				    // containing div
-				    document.getElementById("graphdiv"),dataPoints,
-		                 {
-
-		                    drawPoints: true,
-		                    //showRoller: true,
-		                    labels: ['Date Time', 'Total']
-				}
-
-				  );
-
-
-                        }
-                    }).fail(function()
-                    {
-                        alert('ERROR! \nAre the dates entered in the correct format ("YYYY-mm-dd")');
-                    });
-                });
-            </script>
-
-        <!-- main area -->
-        <div class="col-xs-12 col-sm-9">
-
-        </div><!-- /.col-xs-12 main -->
-    </div><!--/.row-->
+            <div class="col-md-10">
+                <div id="line_chart" style="height: 480px; width: 100%;"></div>
+                <script>
+	            var url = "api/cpu/main"
+	            filterChart(url)
+                </script>
+                <!-- main area -->
+                <div class="col-xs-12 col-sm-9"></div>
+                <!-- /.col-xs-12 main -->
+            </div>
+            <!--/.row-->
 {% endblock %}
+

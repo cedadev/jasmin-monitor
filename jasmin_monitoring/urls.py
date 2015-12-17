@@ -17,6 +17,11 @@ from django.conf.urls import include, url
 from django.contrib import admin
 
 urlpatterns = [
-    url(r'^monitoring/', include('monitoring_system.urls')),
+    #url(r'^$', 'monitoring_system.views.resource'),
+   # url(r'^monitoring/', include('monitoring_system.urls')),
+   # url(r'^cpu/$', 'monitoring_system.views.cpu'),
+   # url(r'^ram/$', 'monitoring_system.views.ram'),
+   # url(r'^login/$', 'monitoring_system.views.login_view'),
+    url(r'^', include('monitoring_system.urls')),
     url(r'^admin/', include(admin.site.urls)),
 ]

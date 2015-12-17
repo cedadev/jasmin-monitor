@@ -1,71 +1,79 @@
-<h1 style="color:red">Resource Monitoring</h1>
+{% extends 'monitoring_system/layout.html' %}
+{% load staticfiles %}
 
-<h2>Total Data</h2>
-table, th, td {
-    border: 1px solid black;
-    border-collapse: collapse;
-}
-th, td {
-    padding: 5px;
-}
-th {
-    text-align: middle;
-}
-<table border="3" style="width:60%">
-<tr>
-  <th>Organisation ID</th>
-  <th>Virtual Machine ID</th>
-  <th>Captured</th>
-  <th>Value</th>
-  <th>Metric Type</th>
-</tr>
-{% for b in total_data %}
-<tr>
-  <td>{{ b.Org_ID }}</td>
-  <td>{{ b.Vm_ID }}</td>
-  <td>{{ b.Date_Time }}</td>
-  <td>{{ b.Value }}</td>
-  <td>{{ b.Metric_Type }}</td>
-</tr>
-{% endfor %}
-</table>
+{% block head_title %}JASMIN Resource Monitoring System{% endblock %}
 
-<h2>CPU Query</h2>
-<table border="3" style="width:60%">
-<tr>
-  <th>Organisation ID</th>
-  <th>Virtual Machine ID</th>
-  <th>Captured</th>
-  <th>Value</th>
-  <th>Metric Type</th>
-</tr>
-{% for a in cpu %}
-<tr>
-  <td>{{ a.Org_ID }}</td>
-  <td>{{ a.Vm_ID }}</td>
-  <td>{{ a.Date_Time }}</td>
-  <td>{{ a.Value }}</td>
-  <td>{{ a.Metric_Type }}</td>
-</tr>
-{% endfor %}
-</table>
+{% block page_title %}Monitoring System{% endblock %}
 
-<h2>RAM Query</h2>
-<table border="3" style="width:60%">
-<tr>
-  <th>Organisation ID</th>
-  <th>Virtual Machine ID</th>
-  <th>Captured</th>
-  <th>Value</th>
-  <th>Metric Type</th>
-</tr>
-{% for c in ram %}
-<tr>
-  <td>{{ c.Org_ID }}</td>
-  <td>{{ c.Vm_ID }}</td>
-  <td>{{ c.Date_Time }}</td>
-  <td>{{ c.Value }}</td>
-  <td>{{ c.Metric_Type }}</td>
-</tr>
-{% endfor %}
-</table>
+{% block content %}
+
+<div class="col-md-2" id="leftCol">
+    <div class="well">
+                    <div class="form-group">
+                <label for="usr">Organisation Name:</label>
+                <input type="text" class="form-control" id="org_name" />
+            </div>
+	    <div class="form-group">
+                <label for="usr">Start Date:</label>
+                <input type="text" class="form-control" id="datepicker_start" />
+            </div>
+	    <div class="form-group">
+                <label for="usr">End Date:</label>
+                <input type="text" class="form-control" id="datepicker_end" />
+            </div>
+            <div class="form-group">
+                <label for="metric_type">Metric Type:</label>
+                <select name="metric" id="metric_type" class="form-control">
+                    <option value="">--Select--</option>
+                    <option value="CPU">CPU</option>
+                    <option value="RAM">RAM</option>
+                </select>
+            </div>
+	   <div class="form-group">
+                <label for="time_period">Time Period:</label>
+                <select name="metric" id="time_period" class="form-control">
+                    <option value="">--Select--</option>
+                    <option value="Hour">Hour</option>
+                    <option value="Day">Day</option>
+		    <option value="Month">Month</option>
+		    <option value="Year">Year</option>		
+                </select>
+            </div>
+            <div class="form-group">
+                <button name="filterBtn" id="filterBtn" type="submit" onclick=filterChart(url); class="btn btn-primary" autocomplete="off">Submit</button>
+            </div>
+                </div>
+            </div>
+            <script type="text/javascript">
+                $('#datepicker_start').datepicker(
+                {
+                    dateFormat: 'yy-mm-dd',
+                    onSelect: function(selected)
+                    {
+                        $("#datepicker_start").datepicker();
+
+                    }
+                });
+                $('#datepicker_end').datepicker(
+                {
+                    dateFormat: 'yy-mm-dd',
+                    onSelect: function(selected)
+                    {
+                        $("#datepicker_end").datepicker();
+                    }
+
+                });
+            </script>
+            <div class="col-md-10">
+                <div id="line_chart" style="height: 480px; width: 100%;"></div>
+                <script>
+	            var url = "api/cpu/main"
+	            filterChart(url)
+                </script>
+                <!-- main area -->
+                <div class="col-xs-12 col-sm-9"></div>
+                <!-- /.col-xs-12 main -->
+            </div>
+            <!--/.row-->
+{% endblock %}
+

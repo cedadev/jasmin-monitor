@@ -18,6 +18,7 @@ from configparser import SafeConfigParser
 from jasmin_portal.cloudservices.vcloud import VCloudProvider
 import xml.etree.ElementTree as ET
 import re
+from django.core import serializers
 
 parser = SafeConfigParser()
 parser.read('/home/njthykkathu/jasmin_monitoring/config/r_config.ini')
@@ -29,7 +30,7 @@ password = parser.get('config', 'password')
 sys.path.append(path)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "jasmin_monitoring.settings")
 django.setup()
-from monitoring_system.models import Resource
+from monitoring_system.models import Resource, Collection
 
 # Prefixes for vCD namespaces
 _NS = {
@@ -54,8 +55,9 @@ def GetOrg(sess):
     for org_list in org_ref:
         org_id = ET.fromstring(sess.api_request('GET', org_list.attrib['href']).text)
         # Parsed the ID
-        parse_org_id = org_id.attrib['href'].rstrip('/').split('/').pop()
-        return org_id, parse_org_id
+        #parse_org_id = org_id.attrib['href'].rstrip('/').split('/').pop()
+        org_name = org_id.attrib['name']
+        return org_id, org_name
 
 
 # Getting Vapp ID using the org id
@@ -70,19 +72,18 @@ def GetVapp(org_id):
 
 
 # Retrieves core data and adds to the database
-def CoreData(get_vm, org_id, vm_id):
+def core_data(get_vm, org_name, vm_id, collection):
     core_ref = get_vm.find('.//vcd:Vm//vmw:CoresPerSocket', _NS).text
     # Adding data to database
-    Resource.objects.create(Org_ID=org_id, Vm_ID=vm_id, Value=core_ref, Metric_Type=0)
+    collection.resource_set.create(org_name=org_name, vm_id=vm_id, value=core_ref, metric_type=Resource.CPU)
 
-
-# Retrieves ram data and adds to the database
-def RamData(status, org_id, vm_id):
-    vm_href = status.attrib['href']
-    get_ram = ET.fromstring(sess.api_request('GET', vm_href + '/virtualHardwareSection/memory').text)
-    ram_ref = get_ram.find('.//rasd:VirtualQuantity', _NS).text
-    # Adding data to database
-    Resource.objects.create(Org_ID=org_id, Vm_ID=vm_id, Value=ram_ref, Metric_Type=1)
+# # Retrieves ram data and adds to the database
+# def RamData(status, org_id, vm_id):
+#     vm_href = status.attrib['href']
+#     get_ram = ET.fromstring(sess.api_request('GET', vm_href + '/virtualHardwareSection/memory').text)
+#     ram_ref = get_ram.find('.//rasd:VirtualQuantity', _NS).text
+#     # Adding data to database
+#     Resource.objects.create(org_id=org_id, vm_id=vm_id, value=ram_ref, metric_type=Resource.RAM)
 
 #-----------------------------------------------------------------------------------------------------------#
 
@@ -90,6 +91,10 @@ def RamData(status, org_id, vm_id):
 get_org = GetOrg(sess)
 get_vapp = GetVapp(get_org[0])
 
+# the model is created here is because one time per snapshot of data
+# if it was in the loop, each time would have created or each object created.
+collection = Collection.objects.create()
+collection.save()
 
 # Getting VM ID and the resources information's
 for vapp_list in get_vapp:
@@ -99,11 +104,11 @@ for vapp_list in get_vapp:
         # Checks if the vm is powered on
         if status.attrib['status'] == '4':
             parse_vm_id = status.attrib['href'].rstrip('/').split('/').pop()
-            CoreData(get_vm, get_org[1], parse_vm_id)
-            RamData(status, get_org[1], parse_vm_id)
+
+            core_data(get_vm, get_org[1], parse_vm_id, collection)
+#            RamData(status, get_org[1], parse_vm_id)
         else:
             pass
-
 
 # to delete all the data in the table
 #Resource.objects.all().delete()

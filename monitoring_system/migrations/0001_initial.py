@@ -11,27 +11,24 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Metric',
+            name='Collection',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('org', models.CharField(max_length=30)),
+                ('id', models.AutoField(serialize=False, auto_created=True, primary_key=True, verbose_name='ID')),
+                ('collection_time', models.DateTimeField(verbose_name='date published')),
             ],
+            options={
+                'ordering': ['collection_time'],
+            },
         ),
         migrations.CreateModel(
-            name='Vapp',
+            name='Resource',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('Vapp', models.CharField(max_length=30)),
-                ('metric', models.ForeignKey(to='monitoring_system.Metric')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='Vm',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('n_cores', models.CharField(max_length=2)),
-                ('Vapp', models.ForeignKey(to='monitoring_system.Vapp')),
+                ('id', models.AutoField(serialize=False, auto_created=True, primary_key=True, verbose_name='ID')),
+                ('org_id', models.CharField(max_length=50)),
+                ('vm_id', models.CharField(max_length=50)),
+                ('value', models.IntegerField()),
+                ('metric_type', models.CharField(max_length=3, choices=[('CPU', 'CPU Cores'), ('RAM', 'RAM Used')])),
+                ('collection', models.ForeignKey(to='monitoring_system.Collection')),
             ],
         ),
     ]
