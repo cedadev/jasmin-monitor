@@ -1,0 +1,18 @@
+{% load staticfiles %}	
+
+
+
+$(function() {
+  g = new Dygraph(
+
+				    // containing div
+				    document.getElementById("cpu_graph"),dataPoints,
+		                 {
+
+		                    drawPoints: true,
+		                    //showRoller: true,
+		                    labels: ['Date Time', 'Total']
+				}
+
+				  );
+});

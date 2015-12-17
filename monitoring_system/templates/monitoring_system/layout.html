@@ -1,0 +1,15 @@
+{% extends 'jasmin_theme/layout.html' %}
+{% load staticfiles %}
+
+{% block head_js_extra %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/dygraph/1.1.1/dygraph-combined.js"></script>
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <script src="{% static "monitoring_system/js/create_graph.js" %}"></script>
+{% endblock %}
+
+{% block site_name %}JASMIN Resource Monitoring System{% endblock %}

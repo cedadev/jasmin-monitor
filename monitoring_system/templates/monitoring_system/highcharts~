@@ -1,0 +1,130 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="http://cdn.jsdelivr.net/jqplot/1.0.8/jquery.jqplot.min.css" />
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <link rel="stylesheet" href="/resources/demos/style.css">
+
+
+    <div id="header">
+        <h1> Resource Monitoring System </h1>
+    </div>
+
+    <body>
+        <nav>
+            <p><b> Enter Metric Type</b></p>
+            <p>Type:
+		<select name="metric" id="metric_type" style="width: 200px">
+		  <option value="----">--Select--</option>
+		  <option value="CPU">CPU</option>
+		  <option value="RAM">RAM</option>
+		</select>
+            </p>
+            <p><b> Enter Dates</b></p>
+            <p>Start Date:
+                <input type="text" id="datepicker_start">
+            </p>
+            <p>End Date:
+                <input type="text" id="datepicker_end">
+            </p>
+            <input type="button" id="filterBtn" value="Update" />
+        </nav>
+        <ul>
+	    <li><button onclick="location.href = '/week';" id="week">Week</button></li>
+	    <li><button onclick="location.href = '/month';" id="week">Month</button></li>
+	    <li><button onclick="location.href = '/year';" id="week"submit-button" >Year</button></li>
+        </ul>
+        <section>
+	    <div id="container" style="width:100%; height:400px;"></div>
+            <script type="text/javascript">
+                $('#datepicker_start').datepicker(
+                {
+                    dateFormat: 'yy-mm-dd',
+                    onSelect: function(selected)
+                    {
+                        $("#datepicker_start").datepicker();
+
+                    }
+                });
+                $('#datepicker_end').datepicker(
+                {
+                    dateFormat: 'yy-mm-dd',
+                    onSelect: function(selected)
+                    {
+                        $("#datepicker_end").datepicker();
+                    }
+                });
+            </script>
+
+<script type="text/javascript">
+var x = [];
+                $("#filterBtn").click(function()
+                {
+                    var type = document.getElementById("metric_type").value;
+                    var x = document.getElementById("datepicker_start").value;
+                    var y = document.getElementById("datepicker_end").value;
+
+
+		$.ajax(
+                    {
+                        type: "GET",
+                        url: "api/cpu/period",
+                        data:
+                        {
+                            'metric_type': type,
+                            'start': x,
+                            'end': y
+                        },
+                        dataType: 'json',
+                        success: function(data)
+                        {
+                            console.log(data);
+
+                            var dataPoints = [];
+
+                            $.each(data, function(index, element)
+                            {
+			       xval = element.collection_time
+                               yval = element.total
+			       var x = [xval, yval];
+			       dataPoints.push(x);
+		           });
+
+   			
+               
+
+//alert(x)
+		    var chart1 = new Highcharts.Chart({
+			chart: {
+			    renderTo: 'container',
+			    type: 'line'
+			},
+			title: {
+			    text: 'Fruit Consumption'
+			},
+			series: [{
+				turboThreshold:5000000000,
+            			data: dataPoints}]
+		    });
+
+
+
+}
+
+                    }).fail(function()
+                    {
+                        alert('ERROR! \nAre the dates entered in the correct format ("YYYY-mm-dd")');
+                    });
+
+
+                });
+
+            </script>
+        </section>
+    </body>
+</html>

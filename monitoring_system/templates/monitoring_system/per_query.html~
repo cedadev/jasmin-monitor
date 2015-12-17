@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+<h1> Resource Filter </h1>
+<script>
+openNewWindow = function()
+{
+ window.open(url, "_blank");
+};
+</script>
+<body>
+<input type="button" onclick="openNewWindow()" >
+</body>
+</head>
+
