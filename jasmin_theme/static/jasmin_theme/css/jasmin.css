@@ -1,0 +1,160 @@
+/* Customisations to bootstrap theme for JASMIN theme (order: bootstrap - bootstrap-theme - this) */
+
+/* CSS rules for sticky footer */
+
+html {
+    margin : 0;
+    padding : 0;
+    height : 100%;
+    box-sizing : border-box;
+}
+
+body {
+    position : relative;
+    margin : 0;
+    min-height : 100%;
+    padding-bottom : 160px;
+}
+
+sidebar {
+    margin-top : 70px;
+}
+
+footer {
+    position : absolute;
+    bottom : 0px;
+    height : 130px;
+    width : 100%;
+    background-color : #F8F8F8;
+    border-top : 1px solid #E7E7E7;
+    padding : 25px 0 15px;
+}
+
+#content-main {
+    margin-top : 70px;
+}
+
+.page-header {
+    margin-top : 10px;
+}
+
+/* Don't have extra margin/padding at the bottom of a panel */
+.panel-body :last-child, .help-block:last-child {
+    margin-bottom : 0;
+    padding-bottom : 0;
+}
+
+/* Set the color of the placeholder text for errored fields
+
+   NOTE: These rules are not combined on purpose
+         This is because if a browser finds a rule with an unrecognised selector,
+         it is free to ignore the entire rule
+*/
+.has-error .form-control::-webkit-input-placeholder {
+    color : #d4a2a0 !important;
+}  
+.has-error .form-control:-moz-placeholder {
+    color : #d4a2a0 !important;
+}   
+.has-error .form-control::-moz-placeholder {
+    color : #d4a2a0 !important;
+}   
+.has-error .form-control:-ms-input-placeholder {
+    color : #d4a2a0 !important;
+}
+
+/* Make the alerts with icons look better */
+.alert .fa {
+    font-size : 25px;
+    vertical-align : middle;
+    margin-right : 5px;
+}
+
+.alert .fa + span {
+    display : inline-block;
+    vertical-align : middle;
+}
+
+/* change the URL to a picture of your choice - the higher quality the better! */
+.business-header {
+	height: 200px;
+	background: url(/static/img/banner.jpg) top left no-repeat;
+    padding: 5px;
+}
+
+.business-header-page {
+	height: 80px;
+	background: url(/static/img/banner.jpg) top left no-repeat;
+    padding: 5px;
+}
+
+/* adjust the color and text shadow to optimize legibility once you have an image set - you can also change the vertical positioning if desired  */
+.tagline {
+	color: #fff;
+	text-shadow: 0 0 10px #000;
+}
+
+.img-pad-1px-right {
+  display: inline-block;
+  height: auto;
+  max-width: 100%;
+  text-align: right;
+  padding-top: 1px;
+  padding-left: 0px;
+  padding-bottom: 0px;
+  padding-right: 0px;
+}
+
+.service {
+	margin: 5px;
+	text-align: center;
+}
+
+.service-icon {
+    color: #428BCA;
+}
+
+
+/* List group horizontal */
+.list-group-horizontal .list-group-item {
+  display: inline-block;
+}
+.list-group-horizontal .list-group-item {
+  margin-bottom: 0;
+  margin-left:-4px;
+  margin-right: 0;
+
+}
+.list-group-horizontal .list-group-item:first-child {
+  border-top-right-radius:0;
+  border-bottom-left-radius:4px;
+}
+.list-group-horizontal .list-group-item:last-child {
+  border-top-right-radius:4px;
+  border-bottom-left-radius:0;
+}
+/* remove border for special case */
+.list-group-item-special {
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  -o-border-radius: 0px;
+  border-radius: 0px;
+  border: 0px;
+}
+
+#ticker_container {
+  padding:1px;
+  border: 0px;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  border-radius: 0px;
+  overflow: auto;
+}
+
+.alert-special {
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  -o-border-radius: 0px;
+  border-radius: 0px;
+  border: 0px;
+}
