@@ -80,9 +80,9 @@ WSGI_APPLICATION = 'jasmin_monitoring.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'jasmin_monitoring_table',
-        'USER': 'jmonitor',
-        'PASSWORD': 'LH35RTY67',
+        'NAME': 'jasmin_monitoring_table', # add the table name created
+        'USER': '<username>', # add username created
+        'PASSWORD': '<password>', #add password created
         'HOST': 'localhost',
         'PORT': '',
     }

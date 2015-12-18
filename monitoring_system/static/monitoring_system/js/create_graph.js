@@ -68,7 +68,7 @@ function filterChart(url) {
                     // containing div
                     document.getElementById("line_chart"), dataPoints, {
                         drawPoints: true,
-                        labels: ['Date Time', 'Total'],
+                        labels: ['Date Time', 'Average Value'],
                         ylabel: 'Average Ram Used (MB)',
                         strokeWidth: 1.5
 

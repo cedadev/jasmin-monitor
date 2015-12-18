@@ -21,7 +21,6 @@ def main(request, format=None):
             time_period = 'Hour'
         if not metric_type:
             metric_type = 'CPU'
-        print(time_period)
         if not start:
             last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
             start = datetime.date.strftime(last_year, "%Y-%m-%d ") # default start date
@@ -31,14 +30,12 @@ def main(request, format=None):
             end = datetime.date.strftime(now, "%Y-%m-%d %H:%M:%S") # default end date
         cursor = connection.cursor()
         if not org_name:
-            print(1)
             cursor.execute("SELECT date_trunc(%s, collection_time) AS date_time, AVG(total) FROM ( \
             SELECT collection_time, SUM(value) AS total FROM monitoring_system_collection AS c, \
             monitoring_system_resource AS r WHERE c.id = r.collection_id AND r.metric_type = %s \
             AND c.collection_time BETWEEN %s AND %s GROUP BY collection_time ORDER BY collection_time) \
             AS totals GROUP BY date_time ORDER BY date_time", (time_period, metric_type, start, end))
         else:
-            print(2)
             cursor.execute("SELECT date_trunc(%s, collection_time) AS date_time, AVG(total) FROM ( \
             SELECT collection_time, SUM(value) AS total FROM monitoring_system_collection AS c, \
             monitoring_system_resource AS r WHERE r.org_name = %s AND c.id = r.collection_id AND r.metric_type = %s \
