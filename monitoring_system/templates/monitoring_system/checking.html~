@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block title %}My amazing blog{% endblock %}
+
+{% block content %}
+<h1 style="color:blue">it extended</h1>
+
+{% endblock %}

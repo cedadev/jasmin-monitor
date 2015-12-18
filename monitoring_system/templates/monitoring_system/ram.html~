@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style.css" />
+    <title>{% block title %}My amazing site{% endblock %}</title>
+</head>
+
+<h1 style="color:red">Second Page</h1>
+
+<body>
+    <div id="sidebar">
+        {% block sidebar %}
+        <ul>
+            <li><a href="/monitoring">Home</a></li>
+	    <li><a href="/cpu">CPU</a></li>
+        </ul>
+        {% endblock %}
+    </div>
+
+<h2>RAM Query</h2>
+<table border="3" style="width:60%">
+<tr>
+  <th>Organisation ID</th>
+  <th>Virtual Machine ID</th>
+  <th>Captured</th>
+  <th>Value</th>
+  <th>Metric Type</th>
+</tr>
+{% for c in ram %}
+<tr>
+  <td>{{ c.Org_ID }}</td>
+  <td>{{ c.Vm_ID }}</td>
+  <td>{{ c.Date_Time }}</td>
+  <td>{{ c.Value }}</td>
+  <td>{{ c.Metric_Type }}</td>
+</tr>
+{% endfor %}
+</table>
+</html>

@@ -1,0 +1,8 @@
+{% extends "monitoring_system/main.html" %}
+
+{% block title %}My amazing blog{% endblock %}
+
+{% block content %}
+<h1 style="color:red">Resource Monitoring</h1>
+{% endblock %}
+

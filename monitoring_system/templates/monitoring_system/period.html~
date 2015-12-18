@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<h2> Data Retrieved Between Certain Period </h2>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+<script type="text/javascript">
+            $(function() {
+                $.ajax({
+                    type: "GET",
+                    url: "api/cpu/period.json",
+                    dataType: 'json',
+                    success: function(data) {
+                        console.log(data);
+
+			var chartData = {
+			  labels: [], // curre
+			 // labels: ["January", "February", "March", "April", "May", "June", "July"],
+			  datasets: [
+			    {
+			      label: "Number Cores",
+			      fillColor: "rgba(220,220,220,0.2)",
+			      strokeColor: "rgba(220,220,220,1)",
+			      pointColor: "rgba(220,220,220,1)",
+			      pointStrokeColor: "#fff",
+			      pointHighlightFill: "#fff",
+			      pointHighlightStroke: "rgba(220,220,220,1)",
+			      data: [] // currently empty will contain all the data points for bills
+			    },
+			  ]
+			};
+
+			Chart.types.Line.extend({
+			    name: "LineAlt",
+			    draw: function () {
+				Chart.types.Line.prototype.draw.apply(this, arguments);
+
+				var ctx = this.chart.ctx;
+				ctx.save();
+				// text alignment and color
+				ctx.textAlign = "center";
+				ctx.textBaseline = "bottom";
+				ctx.fillStyle = this.options.scaleFontColor;
+				// position
+				var x = this.scale.xScalePaddingLeft * 0.4;
+				var y = this.chart.height / 2;
+				// change origin
+				ctx.translate(x, y)
+				// rotate text
+				ctx.rotate(-90 * Math.PI / 180);
+				ctx.fillText(this.datasets[0].label, 0, 0);
+				ctx.restore();
+			    }
+			});
+
+			$.each(data, function(index, element) {
+			  chartData.labels.push(element.collection_time);
+			  // add the total cpu usage to the dataset
+			  chartData.datasets[0].data.push(element.total);
+			});
+			var ctx = document.getElementById("myChart").getContext("2d");
+			var myLineChart = new Chart(ctx).LineAlt(chartData, {
+			    // make enough space on the right side of the graph
+			    scaleLabel: "          <%=value%>"
+			});
+
+                        //var ctx = document.getElementById("myChart").getContext("2d");
+                        //var myNewChart = new Chart(ctx);
+                        //var myLineChart = new Chart(ctx).Line(chartData);
+			
+			// Second Chart
+                        //var ctx = document.getElementById("myChart1").getContext("2d");
+                        //var myNewChart = new Chart(ctx);
+                        //var myLineChart = new Chart(ctx).Line(chartData, {});
+                    }
+			//  chartData.datasets[0].data.push(element.total\)
+                });
+            });
+        </script>
+</head>
+<body>
+<canvas id="myChart" width="400" height="400"></canvas>
+
+<canvas id="myChart1" width="400" height="400"></canvas>
+<div></div>
+
+</body>
+</html>
+

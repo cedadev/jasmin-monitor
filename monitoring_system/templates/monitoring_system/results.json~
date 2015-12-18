@@ -1,0 +1,16 @@
+{"daten":[
+    {
+        "url":"destille",
+        "lang":"de",
+        "ausblenden": {
+            "parts":"farben, sonstiges, material"
+        }
+    },
+    {
+        "url":"schnaps",
+        "lang":"de",
+        "ausblenden": {
+            "parts":"farben, sonstiges"
+        }
+    }
+]}

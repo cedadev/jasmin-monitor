@@ -1,0 +1,90 @@
+{% extends 'monitoring_system/layout.html' %}
+{% load staticfiles %}
+
+{% block head_title %}Month | JASMIN Resource Monitoring System{% endblock %}
+{% block navigation %}
+
+<div>
+    <ul class="nav navbar-nav navbar-left">
+	<li>
+            <a href="/">Home</a>
+        </li>        
+	<li>
+            <a href="/week">Week</a>
+        </li>
+        <li class="active">
+            <a href="/month">Month</a>
+        </li>
+        <li>
+            <a href="/year">Year</a>
+        </li>
+    </ul>
+</div>
+
+{% endblock %}
+
+{% block page_title %}Resource Used Per Month {% endblock %}
+
+{% block content %}
+
+<div class="col-md-2" id="leftCol">
+    <div class="well">
+                    <div class="form-group">
+                <label for="usr">Organisation Name:</label>
+                <input type="text" class="form-control" id="org_name" />
+            </div>
+	    <div class="form-group">
+                <label for="usr">Start Date:</label>
+                <input type="text" class="form-control" id="datepicker_start" />
+            </div>
+	    <div class="form-group">
+                <label for="usr">End Date:</label>
+                <input type="text" class="form-control" id="datepicker_end" />
+            </div>
+            <div class="form-group">
+                <label for="metric_type">Metric Type:</label>
+                <select name="metric" id="metric_type" class="form-control">
+                    <option value="">--Select--</option>
+                    <option value="CPU">CPU</option>
+                    <option value="RAM">RAM</option>
+                </select>
+            </div>
+            <div class="form-group">
+		
+                <button name="filterBtn" id="filterBtn" type="submit" onclick=filterChart(url); class="btn btn-primary" autocomplete="off">Submit</button>
+            </div>
+                </div>
+            </div>
+            <script type="text/javascript">
+                $('#datepicker_start').datepicker(
+                {
+                    dateFormat: 'yy-mm-dd',
+                    onSelect: function(selected)
+                    {
+                        $("#datepicker_start").datepicker();
+
+                    }
+                });
+                $('#datepicker_end').datepicker(
+                {
+                    dateFormat: 'yy-mm-dd',
+                    onSelect: function(selected)
+                    {
+                        $("#datepicker_end").datepicker();
+                    }
+
+                });
+            </script>
+            <div class="col-md-10">
+                <div id="line_chart" style="height: 480px; width: 100%;"></div>
+                <script>
+	            var url = "api/cpu/per_month"
+	            filterChart(url)
+                </script>
+                <!-- main area -->
+                <div class="col-xs-12 col-sm-9"></div>
+                <!-- /.col-xs-12 main -->
+            </div>
+            <!--/.row-->
+{% endblock %}
+
